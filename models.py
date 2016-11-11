@@ -20,7 +20,6 @@ class Storage:
         for itm in items:
             Storage._workers[itm["id"]] = Worker(itm["name"], itm["age"], "")
 
-
     def add(worker):        
         Storage._workers[worker.id] = worker
         _save(Storage._workers)
@@ -40,27 +39,22 @@ class Storage:
         Storage._workers.pop(id)
         _save(Storage._workers)
 
+    def save():
+        _save(Storage._workers)
+
 
 class Person(object):
     def __init__(self, name, age):
-        self._name = name
-        self._age = age
+        self.name = name
+        self.age = age
         self._id = Storage.count() + 1
-
-    @property
-    def name(self):
-        return self._name
-
-    @property
-    def age(self):
-        return self._age
 
     @property
     def id(self):
         return self._id
 
     def __str__(self):
-        return "name={0},age={1}".format(self._name, self._age)
+        return "name={0},age={1}".format(self.name, self.age)
 
     def to_dict(self):
         return {
@@ -72,7 +66,7 @@ class Person(object):
 class Worker(Person):
     def __init__(self, name, age, position):
         super(Worker, self).__init__(name, age)
-        self._position = position
+        self.position = position
 
     def __str__(self):
-        return "name={0},age={1},position={2}".format(self._name, self._age, self._position)
+        return "name={0},age={1},position={2}".format(self.name, self.age, self.position)

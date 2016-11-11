@@ -91,12 +91,15 @@ class DetailsView(BaseView):
         if self._deleting:
             print("\nAre you sure? (y/n)")
         else:
-            print("\nd. Delete")
+            print("\ne. Edit")
+            print("d. Delete")
             print("b. Back")
 
     def action(self, option):
         if option == "b":
             return ListView(Storage.all())
+        if option == "e":
+            return EditView(self._model)
         if option == "d":
             self._deleting = True
 
@@ -106,4 +109,43 @@ class DetailsView(BaseView):
         if self._deleting and option == "n":
             self._deleting = False
         
+        return None
+
+class EditView(BaseView):
+    def __init__(self, model):
+        super(EditView, self).__init__(model)
+        self._name = None
+        self._age = None
+        self._edited = False
+
+    def render(self):
+        print("===Editing '{0.name}'===".format(self._model))
+
+        if self._edited:
+            print("\nName ({0}): {1}".format(self._model.name, self._name))
+            print("Age ({0}): {1}".format(self._model.age, self._age))
+        else:
+            self._name = input("\nName ({0}): ".format(self._model.name))
+            self._age = input("Age ({0}): ".format(self._model.age))
+            self._edited = True
+
+        print("\ns. Save")
+        print("c. Cancel")
+        print("e. Edit")
+
+    def action(self, option):
+        if option == "c":
+            return DetailsView(self._model)
+        if option == "e":
+            self._name = None
+            self._age = None
+            self._edited = False
+        if option == "s":
+            if self._name:
+                self._model.name = self._name
+            if self._age:
+                self._model.age = self._age
+            Storage.save()
+            return DetailsView(self._model)
+
         return None
