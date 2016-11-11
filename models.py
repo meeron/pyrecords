@@ -1,28 +1,38 @@
 import json
 from os import path
 
-def _save(workers):
+def _save(dbFilePath, workers):
     def map_worker(w): return w.to_dict()
-    file = open("data.json", "w")        
+    file = open(dbFilePath, "w")        
     file.write(json.dumps(list(map(map_worker, workers.values()))))
     file.close()
 
 class Storage:
     _workers = {}
+    _dbFilePath = ""
 
-    def load():
-        if not path.isfile("data.json"): return
-        file = open("data.json", "r")
+    def load(dbFilePath):
+        Storage._dbFilePath = dbFilePath
+
+        if not path.isfile(Storage._dbFilePath): return
+        file = open(Storage._dbFilePath, "r")
         json_content = file.read()
         file.close()
 
         items = json.loads(json_content)
         for itm in items:
-            Storage._workers[itm["id"]] = Worker(itm["name"], itm["age"], "")
+            w = Worker(itm["name"], itm["age"], "")
+            w._id = int(itm["id"])
+            Storage._workers[w._id] = w
 
-    def add(worker):        
+    def add(worker):
+        max_id = 0
+        if len(Storage._workers) > 0:
+            max_id = max(Storage._workers.keys())
+
+        worker._id = max_id + 1        
         Storage._workers[worker.id] = worker
-        _save(Storage._workers)
+        Storage.save()
 
     def count():
         return len(Storage._workers)
@@ -37,17 +47,17 @@ class Storage:
 
     def delete(id):
         Storage._workers.pop(id)
-        _save(Storage._workers)
+        Storage.save()
 
     def save():
-        _save(Storage._workers)
+        _save(Storage._dbFilePath, Storage._workers)
 
 
 class Person(object):
     def __init__(self, name, age):
         self.name = name
         self.age = age
-        self._id = Storage.count() + 1
+        self._id = 0
 
     @property
     def id(self):

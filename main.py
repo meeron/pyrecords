@@ -1,12 +1,17 @@
 import sys
 import os
+import argparse
 from views import BaseView, MainView, ListView, AddView
 from models import Storage
 
 if sys.version.find("3.5") < 0:
     raise NotImplementedError()
-    
-Storage.load()
+
+parser = argparse.ArgumentParser()
+parser.add_argument("db", help="Path to database file. If file doesn't exists it will be created.'")
+args = parser.parse_args()    
+
+Storage.load(args.db)
 
 views = {
     "MainView": MainView(),
