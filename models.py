@@ -1,29 +1,34 @@
 import json
 from os import path
-
-def _save(dbFilePath, workers):
-    def map_worker(w): return w.to_dict()
-    file = open(dbFilePath, "w")        
-    file.write(json.dumps(list(map(map_worker, workers.values()))))
-    file.close()
+from security import Passwd
 
 class Storage:
     _workers = {}
     _dbFilePath = ""
+    _passwd = None
+    is_new = False
 
-    def load(dbFilePath):
+    def load(dbFilePath, password):
+        Storage._passwd = Passwd(password)
         Storage._dbFilePath = dbFilePath
 
-        if not path.isfile(Storage._dbFilePath): return
-        file = open(Storage._dbFilePath, "r")
-        json_content = file.read()
-        file.close()
+        if not path.isfile(Storage._dbFilePath):
+            Storage.is_new = True
+            return True
+
+        with open(Storage._dbFilePath, "rb") as f:
+            json_content = Storage._passwd.decrypt(f.read())
+
+        if json_content is None:
+            return False
 
         items = json.loads(json_content)
         for itm in items:
             w = Worker(itm["name"], itm["age"], "")
             w._id = int(itm["id"])
             Storage._workers[w._id] = w
+
+        return True
 
     def add(worker):
         max_id = 0
@@ -50,8 +55,11 @@ class Storage:
         Storage.save()
 
     def save():
-        _save(Storage._dbFilePath, Storage._workers)
-
+        def map_worker(w): return w.to_dict()
+        
+        with open(Storage._dbFilePath, "wb") as f:
+            json_msg = json.dumps(list(map(map_worker, Storage._workers.values())))        
+            f.write(Storage._passwd.encrypt(json_msg))
 
 class Person(object):
     def __init__(self, name, age):

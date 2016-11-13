@@ -1,6 +1,7 @@
 import sys
 import os
 import argparse
+from getpass import getpass
 from views import BaseView, MainView, ListView, AddView
 from models import Storage
 
@@ -9,9 +10,15 @@ if sys.version.find("3.5") < 0:
 
 parser = argparse.ArgumentParser()
 parser.add_argument("db", help="Path to database file. If file doesn't exists it will be created.'")
-args = parser.parse_args()    
+args = parser.parse_args()
 
-Storage.load(args.db)
+cnt = 0
+while not Storage.load(args.db, getpass()):
+    cnt = cnt + 1
+    if cnt >= 3:
+        print("Access Denied")
+        exit()
+
 
 views = {
     "MainView": MainView(),

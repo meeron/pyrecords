@@ -27,7 +27,7 @@ class MainView(BaseView):
         return None
 
 class ListView(BaseView):
-    def render(self):
+    def render(self):        
         print("===List===")
         
         if len(self._model) == 0:
